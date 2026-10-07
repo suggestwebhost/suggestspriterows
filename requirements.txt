@@ -1,4 +1,4 @@
 flask
 pymongo[srv]
-cloudinary
+
 gunicorn
