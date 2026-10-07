@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpriteVault Hub & API</title>
+    <link href="https://jsdelivr.net" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: system-ui, -apple-system, sans-serif; }
+        .sprite-card { background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e3e6f0; }
+        /* Transparent checkerboard style matrix backdrop frame for clean 2D game asset visibility */
+        .sprite-frame { background-image: linear-gradient(45deg, #eaf0f6 25%, transparent 25%), linear-gradient(-45deg, #eaf0f6 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eaf0f6 75%), linear-gradient(-45deg, transparent 75%, #eaf0f6 75%); background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0px; background-color: #ffffff; display: flex; align-items: center; justify-content: center; height: 160px; border-bottom: 1px solid #e3e6f0; }
+        .sprite-img { max-height: 130px; max-width: 130px; image-rendering: pixelated; object-fit: contain; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">👾 SpriteVault Hub & API</span>
+            <a href="/api/sprites" target="_blank" class="btn btn-outline-info btn-sm">Test API Endpoint</a>
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+        <div class="row g-4">
+            
+            <!-- Left Side Control Panel: Upload Interface Form -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 position-sticky" style="top: 20px;">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3 text-dark">Bulk Upload Assets</h5>
+                        <form action="/upload" method="POST" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="sprites" class="form-label small fw-bold">Select Files</label>
+                                <input type="file" class="form-control" id="sprites" name="sprites" accept="image/png, image/gif, image/jpeg" multiple required>
+                                <div class="form-text text-muted" style="font-size: 0.75rem;">Batch upload multiple files together easily.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="category" class="form-label small fw-bold">Category Assignment</label>
+                                <select class="form-select text-capitalize" id="category" name="category">
+                                    <option value="characters">characters</option>
+                                    <option value="items">items / loot</option>
+                                    <option value="tilesets">tilesets / ground</option>
+                                    <option value="ui">UI elements</option>
+                                    <option value="effects">effects / FX</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tags" class="form-label small fw-bold">Tags</label>
+                                <input type="text" class="form-control" id="tags" name="tags" placeholder="pixel, 16bit, avatar">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">Process Upload Queue</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side Dashboard: Main 3-Column Sprite Gallery -->
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="m-0 text-dark">Stored Items Vault ({{ total_sprites }})</h4>
+                    <span class="badge bg-dark px-3 py-2 fs-6 shadow-sm">Page {{ current_page }} of {{ total_pages }}</span>
+                </div>
+                
+                {% if not sprites %}
+                <div class="alert alert-light border shadow-sm p-4 text-center">
+                    <p class="text-muted m-0">Your repository database is currently empty. Drop some image resources into the form control column to populate your grid dashboard!</p>
+                </div>
+                {% endif %}
+
+                <!-- Enforces exactly 3 columns per horizontal row row-cols-md-3 on desktop targets -->
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+                    {% for sprite in sprites %}
+                    <div class="col">
+                        <div class="sprite-card h-100 shadow-sm d-flex flex-column">
+                            
+                            <!-- Display Frame Box -->
+                            <div class="sprite-frame">
+                                <img src="{{ sprite.image_url }}" class="sprite-img" alt="{{ sprite.name }}">
+                            </div>
+                            
+                            <!-- Information Block Below Frame -->
+                            <div class="p-3 d-flex flex-column flex-grow-1">
+                                <h6 class="text-truncate mb-1 fw-bold text-dark" title="{{ sprite.name }}">{{ sprite.name }}</h6>
+                                <div class="mb-2">
+                                    <span class="badge bg-light text-secondary border text-capitalize" style="font-size: 0.7rem;">{{ sprite.category }}</span>
+                                </div>
+                                <div class="text-truncate flex-grow-1 mb-3" style="min-height: 18px;">
+                                    {% for tag in sprite.tags %}
+                                    <span class="text-info small text-decoration-none me-1" style="font-size: 0.75rem;">#{{ tag }}</span>
+                                    {% endfor %}
+                                </div>
+                                
+                                <!-- Native Local Browser Download Button Attachment -->
+                                <a href="/download/{{ sprite.filename }}" class="btn btn-sm btn-outline-dark w-100 fw-bold d-flex align-items-center justify-content-center mt-auto">
+                                    📥 Download Sprite
+                                </a>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Dynamic Page Splitting Pagination Component Navigation -->
+                {% if total_pages > 1 %}
+                <nav class="d-flex justify-content-center mt-5">
+                    <ul class="pagination shadow-sm">
+                        
+                        <!-- Previous Page Button Link -->
+                        <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                            <a class="page-link" href="?page={{ current_page - 1 }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo; Prev</span>
+                            </a>
+                        </li>
+                        
+                        <!-- Page Number Blocks Loop -->
+                        {% for p in range(1, total_pages + 1) %}
+                        <li class="page-item {% if p == current_page %}active{% endif %}">
+                            <a class="page-link fw-bold" href="?page={{ p }}">{{ p }}</a>
+                        </li>
+                        {% endfor %}
+                        
+                        <!-- Next Page Button Link -->
+                        <li class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                            <a class="page-link" href="?page={{ current_page + 1 }}" aria-label="Next">
+                                <span aria-hidden="true">Next &raquo;</span>
+                            </a>
+                        </li>
+                        
+                    </ul>
+                </nav>
+                {% endif %}
+
+            </div>
+            
+        </div>
+    </div>
+
+</body>
+</html>
