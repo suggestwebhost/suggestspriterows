@@ -70,7 +70,10 @@
                 {% endif %}
 
                 <!-- Enforces exactly 3 columns per horizontal row row-cols-md-3 on desktop targets -->
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+                   <!-- This explicitly forces 2 items on mobile/tablets and exactly 3 items on standard monitor screens -->
+<div class="row row-cols-2 row-cols-md-3 row-cols-lg-3 g-4">
+
+                
                     {% for sprite in sprites %}
                     <div class="col">
                         <div class="sprite-card h-100 shadow-sm d-flex flex-column">
