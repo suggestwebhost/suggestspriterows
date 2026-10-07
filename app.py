@@ -1,4 +1,5 @@
 import os
+import urllib.parse
 import math
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
@@ -86,9 +87,28 @@ def upload_sprites():
     return redirect(url_for('index'))
 
 # Route allowing programmatic asset direct-download streams
-@app.route('/download/<filename>')
+
+
+@app.route('/download/<path:filename>')  # Changing <filename> to <path:filename> handles spaces safely
 def download_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+    # Decode any URL-encoded names (e.g., converting '%20' back into spaces)
+    decoded_filename = urllib.parse.unquote(filename)
+    
+    # Get the absolute path to your upload directory folder
+    target_directory = os.path.abspath(app.config['UPLOAD_FOLDER'])
+    
+    # Securely verify if the file exists on the disk layout right now
+    full_file_path = os.path.join(target_directory, decoded_filename)
+    
+    if os.path.exists(full_file_path):
+        return send_from_directory(
+            target_directory, 
+            decoded_filename, 
+            as_attachment=True  # Forces the browser to download instead of opening it
+        )
+    else:
+        # Debugging helpful message showing exactly what path Flask is trying to read
+        return f"🚨 Route mismatch. File exists but Flask looked for: '{decoded_filename}' inside '{target_directory}'", 404
 
 # ==================== API ENDPOINTS ====================
 @app.route('/api/sprites', methods=['GET'])
