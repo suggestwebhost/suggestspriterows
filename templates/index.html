@@ -96,7 +96,11 @@
                                 </div>
                                 
                                 <!-- Native Local Browser Download Button Attachment -->
-                                <a href="/download/{{ sprite.filename }}" class="btn btn-sm btn-outline-dark w-100 fw-bold d-flex align-items-center justify-content-center mt-auto">
+                                <!-- Locate this button code inside your template grid and update it exactly to this: -->
+<a href="/download/{{ sprite.filename }}" download="{{ sprite.filename }}" class="btn-download">
+    📥 Download
+</a>
+
                                     📥 Download Sprite
                                 </a>
                             </div>
